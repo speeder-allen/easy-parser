@@ -125,6 +125,9 @@ func Str2Json(str string) (interface{}, error) {
 }
 
 func String2Type(str, typename string) (interface{}, error) {
+	if typename == reflect.String.String() {
+		return str, nil
+	}
 	fn, ok := ConvertFunc[typename]
 	if ok {
 		return fn(str)
