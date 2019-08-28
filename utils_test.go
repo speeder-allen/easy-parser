@@ -149,19 +149,14 @@ func TestStr2Uint64(t *testing.T) {
 	assert.Equal(t, r, uint64(131313))
 }
 
-func TestString2Type(t *testing.T) {
-	s := "12345"
-	r, err := easy_parser.String2Type(s, "int32")
-	assert.NilError(t, err)
-	assert.Equal(t, reflect.TypeOf(r).Kind(), reflect.Int32)
-	assert.Equal(t, r, int32(12345))
-	r, err = easy_parser.String2Type(s, "invalid")
-	assert.Error(t, err, easy_parser.ErrorInvalidType.Error())
-}
-
 func TestStr2Json(t *testing.T) {
 	s := `{"name":"test","age":32}`
-	r, err := easy_parser.Str2Json(s)
+	r := &struct {
+		Name string `json:"name"`
+		Age  uint   `json:"age"`
+	}{}
+	v := reflect.ValueOf(r)
+	err := easy_parser.Str2Json(s, &v)
 	assert.NilError(t, err)
-	assert.Equal(t, r.(map[string]interface{})["name"], "test")
+	assert.Equal(t, r.Name, "test")
 }

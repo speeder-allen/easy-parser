@@ -2,6 +2,7 @@ package easy_parser
 
 import (
 	"encoding/json"
+	"encoding/xml"
 	"github.com/pkg/errors"
 	"reflect"
 	"strconv"
@@ -9,7 +10,7 @@ import (
 
 var (
 	ErrorInvalidType = errors.New("invalid type or not support.")
-	ConvertFunc      = map[string]Convert{
+	ConvertBaseFunc  = map[string]ConvertBase{
 		reflect.Int.String():              Str2Int,
 		reflect.Uint.String():             Str2Uint,
 		reflect.Int8.String():             Str2Int8,
@@ -24,11 +25,15 @@ var (
 		reflect.Float64.String():          Str2Float64,
 		reflect.Bool.String():             Str2Bool,
 		reflect.TypeOf([]byte{}).String(): Str2Bytes,
-		"json":                            Str2Json,
+	}
+	ConvertAdvancedFunc = map[string]ConvertAdvanced{
+		"json": Str2Json,
+		"xml":  Str2Xml,
 	}
 )
 
-type Convert func(string) (interface{}, error)
+type ConvertBase func(string) (interface{}, error)
+type ConvertAdvanced func(string, *reflect.Value) error
 
 func Str2Int(str string) (interface{}, error) {
 	return strconv.Atoi(str)
@@ -118,19 +123,33 @@ func Str2Bool(str string) (interface{}, error) {
 	return strconv.ParseBool(str)
 }
 
-func Str2Json(str string) (interface{}, error) {
-	var inf interface{}
-	err := json.Unmarshal([]byte(str), &inf)
-	return inf, err
+func Str2Json(str string, value *reflect.Value) error {
+	return json.Unmarshal([]byte(str), value.Interface())
 }
 
-func String2Type(str, typename string) (interface{}, error) {
-	if typename == reflect.String.String() {
-		return str, nil
+func Str2Xml(str string, value *reflect.Value) error {
+	return xml.Unmarshal([]byte(str), value.Interface())
+}
+
+func StringParser(str, decode string, inf *reflect.Value) error {
+	if decode == reflect.String.String() {
+		inf.Elem().SetString(str)
+		return nil
+	} else {
+		fn, ok := ConvertBaseFunc[decode]
+		if ok {
+			m, err := fn(str)
+			if err != nil {
+				return err
+			}
+			inf.Elem().Set(reflect.ValueOf(m))
+			return nil
+		} else {
+			fn, ok := ConvertAdvancedFunc[decode]
+			if ok {
+				return fn(str, inf)
+			}
+		}
 	}
-	fn, ok := ConvertFunc[typename]
-	if ok {
-		return fn(str)
-	}
-	return nil, ErrorInvalidType
+	return ErrorInvalidType
 }
