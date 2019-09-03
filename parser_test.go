@@ -1,8 +1,10 @@
 package easy_parser_test
 
 import (
+	"context"
 	easy_parser "github.com/speeder-allen/easy-parser"
 	"gotest.tools/assert"
+	"log"
 	"os"
 	"testing"
 )
@@ -19,5 +21,17 @@ func TestParserEnvironment(t *testing.T) {
 	err = easy_parser.ParserEnvironment(&s)
 	assert.NilError(t, err)
 	t.Log(s)
+
+}
+
+func TestParserContext(t *testing.T) {
+	lg := log.New(os.Stdout, "[debug]", log.LstdFlags)
+	ctx := context.WithValue(context.Background(), "logger", lg)
+	conf := struct {
+		Log      *log.Logger `ctxkey:"logger"`
+		ErrorLog *log.Logger `ctxkey:"error_logger"`
+	}{}
+	err := easy_parser.ParserContext(ctx, &conf)
+	assert.NilError(t, err)
 
 }

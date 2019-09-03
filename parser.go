@@ -3,8 +3,11 @@ package easy_parser
 import (
 	"context"
 	"errors"
+	"fmt"
+	"log"
 	"os"
 	"reflect"
+	"unicode"
 )
 
 var (
@@ -24,6 +27,9 @@ func ParserEnvironment(inf interface{}) error {
 	v := reflect.ValueOf(inf).Elem()
 	for i := 0; i < t.NumField(); i++ {
 		if envKey, ok := t.Field(i).Tag.Lookup("envkey"); ok {
+			if unicode.IsLower(rune(t.Field(i).Name[0])) {
+				return fmt.Errorf("%s is unexported field", t.Field(i).Name)
+			}
 			if envVal := os.Getenv(envKey); envVal != "" {
 				envType := t.Field(i).Type
 				envDecode, ok := t.Field(i).Tag.Lookup("envtype")
@@ -32,7 +38,7 @@ func ParserEnvironment(inf interface{}) error {
 				}
 				value := reflect.New(envType)
 				err := StringParser(envVal, envDecode, &value)
-				//log.Println(err, envType, value.Elem())
+				log.Println(t.Field(i).Name, err, envType, value.Elem())
 				if err == nil {
 					v.Field(i).Set(value.Elem())
 				}
@@ -54,7 +60,12 @@ func ParserContext(ctx context.Context, inf interface{}) error {
 	v := reflect.ValueOf(inf).Elem()
 	for i := 0; i < t.NumField(); i++ {
 		if ctxKey, ok := t.Field(i).Tag.Lookup("ctxkey"); ok {
-			v.Field(i).Set(reflect.ValueOf(ctx.Value(ctxKey)))
+			if unicode.IsLower(rune(t.Field(i).Name[0])) {
+				return fmt.Errorf("%s is unexported field", t.Field(i).Name)
+			}
+			if ctx.Value(ctxKey) != nil {
+				v.Field(i).Set(reflect.ValueOf(ctx.Value(ctxKey)))
+			}
 		}
 	}
 	return nil
