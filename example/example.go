@@ -1,9 +1,11 @@
 package main
 
 import (
+	"context"
 	"encoding/xml"
 	"fmt"
 	parser "github.com/speeder-allen/easy-parser"
+	"log"
 	"os"
 )
 
@@ -77,4 +79,29 @@ func main() {
 	fmt.Println(len(conf.XmlTest.Persons[0].Interests)) //2
 	fmt.Println(conf.XmlTest.Persons[0].Interests[0])   //travel
 	fmt.Println(conf.XmlTest.Persons[1].Age)            // 27
+
+	// test context parser
+	log1 := log.New(os.Stdout, "[normal]", log.LstdFlags)
+	log2 := log.New(os.Stderr, "[error]", log.LstdFlags)
+	ctx := context.WithValue(context.Background(), "normal_logger", log1)
+	ctx = context.WithValue(ctx, "error_logger", log2)
+	some(ctx)
+}
+
+func some(ctx context.Context) {
+	instance := struct {
+		NormalLog *log.Logger `ctxkey:"normal_logger"`
+		ErrorLog  *log.Logger `ctxkey:"error_logger"`
+	}{}
+
+	// parser context value to struct
+	parser.ParserContext(ctx, &instance)
+
+	//print result
+	fmt.Println(instance.NormalLog)
+	fmt.Println(instance.ErrorLog)
+
+	// print log
+	instance.NormalLog.Println("12345")  // [normal]12345
+	instance.ErrorLog.Println("error!!") // [error]error!!
 }
