@@ -1,6 +1,10 @@
 # easy-parser
 a easy parser for golang 
 
+## test
+
+[![Build Status](https://travis-ci.org/speeder-allen/easy-parser.svg?branch=master)](https://travis-ci.org/speeder-allen/easy-parser)
+
 ## install
 
 ```shell
