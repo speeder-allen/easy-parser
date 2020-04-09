@@ -49,10 +49,10 @@ func TestStr2Int(t *testing.T) {
 
 func TestStr2Uint(t *testing.T) {
 	s := "134561234"
-	r, err := easy_parser.Str2Int(s)
+	r, err := easy_parser.Str2Uint(s)
 	assert.NilError(t, err)
-	assert.Equal(t, reflect.TypeOf(r).Kind(), reflect.Int)
-	assert.Equal(t, r, int(134561234))
+	assert.Equal(t, reflect.TypeOf(r).Kind(), reflect.Uint)
+	assert.Equal(t, r, uint(134561234))
 }
 
 func TestStr2Int8(t *testing.T) {

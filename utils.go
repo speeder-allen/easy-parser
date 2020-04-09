@@ -6,6 +6,7 @@ import (
 	"github.com/pkg/errors"
 	"reflect"
 	"strconv"
+	"unicode"
 )
 
 var (
@@ -152,4 +153,12 @@ func StringParser(str, decode string, inf *reflect.Value) error {
 		}
 	}
 	return ErrorInvalidType
+}
+
+func isPointer(tp reflect.Type) bool {
+	return tp.String()[0:1] == "*"
+}
+
+func isExportColumn(field reflect.StructField) bool {
+	return unicode.IsUpper(rune(field.Name[0]))
 }
